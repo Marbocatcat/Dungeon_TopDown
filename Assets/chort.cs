@@ -8,19 +8,30 @@ public class chort : MonoBehaviour
     private Transform wizzard;
 
     bool running;
+    bool isFacingLeft;
+    bool hit;
 
     public float speed;
+    public float health;
     public float lineOfSite;
 
+    private Material matRed;
+    private Material matDefault;
+
+    SpriteRenderer spriteRenderer;
     Rigidbody2D rigidBody2D;
     Animator animator;
     Vector3 baseScale;
 
     private void Start()
     {
+        hit = false;
         rigidBody2D = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         baseScale = transform.localScale;
+        matRed = Resources.Load("matRed", typeof(Material)) as Material;
+        matDefault = spriteRenderer.material;
     }
 
     // Update is called once per frame
@@ -37,15 +48,62 @@ public class chort : MonoBehaviour
             running = false;
         }
 
+        if(health <= 0)
+        {
+            isDead();
+        }
+
         // this is when chort is idle
         handleAnimations(running);
-
+    
     }
 
+
+    void isDead()
+    {
+        Destroy(gameObject);
+    }
+    public void isHit() 
+    {
+
+
+        hit = true;
+        health--;
+        spriteRenderer.material = matRed;
+
+        if(health <=0 )
+        {
+            isDead();
+        }
+        else
+        {
+            StartCoroutine("resetMaterial");
+        }
+ 
+    }
+
+    IEnumerator resetMaterial()
+    {
+        yield return new WaitForSeconds(.1f);
+        spriteRenderer.material = matDefault;
+        hit = false;
+    }
     void chasing()
     {
-        transform.position = Vector2.MoveTowards(this.transform.position, wizzard.position, speed * Time.deltaTime); // move towards the player
-        running = true;
+
+        // if im hit stop chasing, otherwise chase the wizzard
+        if(hit == false)
+        {
+            transform.position = Vector2.MoveTowards(this.transform.position, wizzard.position, speed * Time.deltaTime); // move towards the player
+            running = true;
+        }
+        else if(hit == true)
+        {
+            running = false;
+            transform.position = new Vector2(transform.position.x, transform.position.y);
+        }
+        
+        
     }
 
     bool isSpotted()
@@ -65,7 +123,7 @@ public class chort : MonoBehaviour
 
     void handleAnimations(bool running)
     {
-        if(running)
+        if(running && !hit)
         {
             animator.Play("chort_run_anim");
         }
@@ -82,10 +140,12 @@ public class chort : MonoBehaviour
         if(playerDirection < -0.1)
         {
             newScale.x = -baseScale.x;
+            isFacingLeft = true;
         }
         else if(playerDirection > 0.1)
         {
             newScale.x = baseScale.x;
+            isFacingLeft = false;
         }
         transform.localScale = newScale;
         

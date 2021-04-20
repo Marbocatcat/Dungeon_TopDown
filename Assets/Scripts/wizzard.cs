@@ -76,8 +76,6 @@ public class wizzard : MonoBehaviour
     }
     void dashing(string direction)
     {
-        
-        
 
         if(direction == facingRight)
         {

@@ -17,18 +17,16 @@ public class bulletController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-
         // if bullets collides with an enemy , destroy the enemy , otherwise start the bullet fade coroutine.
-        if(collision.tag == "enemy")
+        if(collision.tag == "Chort")
         {
-            Destroy(collision.gameObject);
+            collision.gameObject.GetComponent<chort>().isHit(); // if you hit chort , it runs a function that -health;
+            Destroy(gameObject);
         }
         else
         {
             StartCoroutine("bulletFade");
         }
-        
-        
     }
 
     // this gives it a delay of 2 before the bullet fades away.
