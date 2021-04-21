@@ -1,13 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class wizzard : MonoBehaviour
 {
     [SerializeField]
     float speed;
-    [SerializeField]
-    float health;
+   
+
+    public SpriteRenderer[] lives;
+    public int livesRemaining;
 
     private Transform staffTransform;
     private Camera theCam;
@@ -16,6 +19,7 @@ public class wizzard : MonoBehaviour
 
     public Transform firePoint;
     public GameObject bulletTofire;
+    public GameObject damageCounter;
 
     Rigidbody2D rigidBody2d;
     SpriteRenderer spriteRenderer;
@@ -154,10 +158,17 @@ public class wizzard : MonoBehaviour
     }
     public void isHit()
     {
-        health--;
+ 
+        handleDamageCounter();
         spriteRenderer.material = matRed;
+    
+        // decrease the value of lives remaining.
+        livesRemaining--;
+        // hide one of the life images
+        lives[livesRemaining].enabled = false;
 
-        if(health <= 0)
+        //if we run out of lives we lost the game
+        if (livesRemaining == 0)
         {
             isDead();
         }
@@ -167,7 +178,12 @@ public class wizzard : MonoBehaviour
         }
 
     }
+    void handleDamageCounter()
+    {
+        GameObject counter = (GameObject)Instantiate(damageCounter, transform.position, transform.rotation);
 
+        Destroy(counter, .5f);
+    }
 
     void Update()
     {
@@ -183,10 +199,6 @@ public class wizzard : MonoBehaviour
             isShooting = true;
         
         }
-
-        Debug.Log("Current health is: " + health);
-
-
     } 
 
     void FixedUpdate()
