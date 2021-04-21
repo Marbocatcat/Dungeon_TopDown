@@ -9,11 +9,13 @@ public class chort : MonoBehaviour
 
     bool running;
     bool isFacingLeft;
+    bool justHit;
     bool hit;
 
     public float speed;
     public float health;
     public float lineOfSite;
+    public GameObject damageCounter;
 
     private Material matRed;
     private Material matDefault;
@@ -59,17 +61,22 @@ public class chort : MonoBehaviour
     }
 
 
+    void handleDamageCounter()
+    {
+        Instantiate(damageCounter, transform.position, transform.rotation);
+    }
     void isDead()
     {
         Destroy(gameObject);
     }
-    public void isHit() 
+    public void isHit() // runs when you hit the wizzard.
     {
 
 
         hit = true;
         health--;
         spriteRenderer.material = matRed;
+        handleDamageCounter();
 
         if(health <=0 )
         {
@@ -88,6 +95,12 @@ public class chort : MonoBehaviour
         spriteRenderer.material = matDefault;
         hit = false;
     }
+    IEnumerator resetJusthit()
+    {
+        yield return new WaitForSeconds(.1f);
+        justHit = false;
+    }
+
     void chasing()
     {
 
@@ -105,7 +118,6 @@ public class chort : MonoBehaviour
         
         
     }
-
     bool isSpotted()
     {
         float distanceFromPlayer = Vector2.Distance(wizzard.position, transform.position); // returns the distance from player position to the enemy position
@@ -151,6 +163,19 @@ public class chort : MonoBehaviour
         
     }
 
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.tag == "Wizzard" && justHit == false)
+        {
+            collision.gameObject.GetComponent<wizzard>().isHit();
+            justHit = true;
+        }
+        else
+        {
+            StartCoroutine("resetJusthit");
+        }
+    }
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;

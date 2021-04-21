@@ -6,14 +6,19 @@ public class wizzard : MonoBehaviour
 {
     [SerializeField]
     float speed;
+    [SerializeField]
+    float health;
 
     private Transform staffTransform;
     private Camera theCam;
+    private Material matRed;
+    private Material matDefault;
 
     public Transform firePoint;
     public GameObject bulletTofire;
 
     Rigidbody2D rigidBody2d;
+    SpriteRenderer spriteRenderer;
     Animator animator; 
     
     Vector3 mousePos;
@@ -22,6 +27,7 @@ public class wizzard : MonoBehaviour
 
     float horizontal;
     float vertical;
+    
 
     bool isDashing;
     bool isShooting;
@@ -36,14 +42,19 @@ public class wizzard : MonoBehaviour
     private void Awake()
     {
         staffTransform = transform.Find("green_staff"); // find the child object called green_staff and store it in the staffTransform variable.
+        theCam = Camera.main;
     }
     void Start()
     {
+       
         rigidBody2d = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         baseScale = transform.localScale;
-        theCam = Camera.main;
- 
+        
+        matRed = Resources.Load("matRed", typeof(Material)) as Material;
+        matDefault = spriteRenderer.material;
+
     }
 
     void handleAnimation()
@@ -132,6 +143,30 @@ public class wizzard : MonoBehaviour
         Instantiate(bulletTofire, firePoint.position, staffTransform.rotation);
         isShooting = false;
     }
+    void isDead()
+    {
+        Destroy(gameObject);
+    }
+    IEnumerator resetMaterial()
+    {
+        yield return new WaitForSeconds(.1f);
+        spriteRenderer.material = matDefault;
+    }
+    public void isHit()
+    {
+        health--;
+        spriteRenderer.material = matRed;
+
+        if(health <= 0)
+        {
+            isDead();
+        }
+        else
+        {
+            StartCoroutine("resetMaterial");
+        }
+
+    }
 
 
     void Update()
@@ -148,6 +183,9 @@ public class wizzard : MonoBehaviour
             isShooting = true;
         
         }
+
+        Debug.Log("Current health is: " + health);
+
 
     } 
 

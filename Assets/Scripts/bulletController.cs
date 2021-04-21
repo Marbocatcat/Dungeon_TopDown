@@ -23,6 +23,10 @@ public class bulletController : MonoBehaviour
             collision.gameObject.GetComponent<chort>().isHit(); // if you hit chort , it runs a function that -health;
             Destroy(gameObject);
         }
+        else if(collision.tag == "walls") // if I collide with walls , destroy the bullet instantly
+        {
+            Destroy(gameObject);
+        }
         else
         {
             StartCoroutine("bulletFade");
