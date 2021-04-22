@@ -9,7 +9,6 @@ public class NecromancerScript : MonoBehaviour
     private Transform wizzard;
 
     bool running;
-    bool isFacingLeft;
     bool justHit;
     bool hit;
 
@@ -36,7 +35,7 @@ public class NecromancerScript : MonoBehaviour
 
     private void Awake()
     {
-        staffTransform = transform.Find("red_staff");
+        staffTransform = transform.Find("red_staff"); // returns the child transform of the object red_staff
     }
 
     private void Start()
@@ -45,16 +44,17 @@ public class NecromancerScript : MonoBehaviour
         rigidBody2D = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        baseScale = transform.localScale;
-        matRed = Resources.Load("matRed", typeof(Material)) as Material;
-        matDefault = spriteRenderer.material;
+        baseScale = transform.localScale; // this determines where the necromancer is facing
+        matRed = Resources.Load("matRed", typeof(Material)) as Material; // preloads the sprite material red for when it gets hit.
+        matDefault = spriteRenderer.material; // default material when hes not hit.
     }
 
     // Update is called once per frame
     void Update()
     {
-        // if the wizzard is within line of site , he will run towards him.
-        isSpotted();
+        whereIstheWizzard();
+
+
 
         if (health <= 0)
         {
@@ -64,15 +64,35 @@ public class NecromancerScript : MonoBehaviour
         // this is when chort is idle
         handleAnimations(running);
     }
+    void whereIstheWizzard()
+    {
+        float distanceFromPlayer = Vector2.Distance(wizzard.position, transform.position); // returns the distance between the wizzards position to the my position.
 
-    void attack()
+        // only returns true if the necromancer's distance from the wizzard is less than the line of site but greater than the shooting range.
+        if (distanceFromPlayer < lineOfSite && distanceFromPlayer > shootingRange)
+        {
+            chasing();
+            flipTowardsPlayer();
+        }
+        else if (distanceFromPlayer <= shootingRange && nextFireTime < Time.time) // if the distance from player is less than the shooting range start firing.
+        {
+            attack();
+            flipTowardsPlayer();
+        }
+        else
+        {
+            running = false;
+        }
+
+    }
+    void attack() // instantiate the bolt and fires it.
     {
         Instantiate(bulletToFire, firePoint.position, staffTransform.rotation);
-        nextFireTime = Time.time + fireRate;
+        nextFireTime = Time.time + fireRate; // fire rate is reset to 1 sec.
 
     }
 
-    void handleDamageCounter()
+    void handleDamageCounter() // this is the graphic damage counter that pops up in his head when he is hit.
     {
         GameObject counter = (GameObject)Instantiate(damageCounter, transform.position, transform.rotation);
 
@@ -84,11 +104,9 @@ public class NecromancerScript : MonoBehaviour
     }
     public void isHit() // runs when you hit the wizzard.
     {
-
-
         hit = true;
         health--;
-        spriteRenderer.material = matRed;
+        spriteRenderer.material = matRed; // sets the sprite material to red.
         handleDamageCounter();
 
         if (health <= 0)
@@ -104,14 +122,10 @@ public class NecromancerScript : MonoBehaviour
 
     IEnumerator resetMaterial()
     {
+        // waits for .1 sec before resetting hit to false and the material back to default.
         yield return new WaitForSeconds(.1f);
         spriteRenderer.material = matDefault;
         hit = false;
-    }
-    IEnumerator resetJusthit()
-    {
-        yield return new WaitForSeconds(.1f);
-        justHit = false;
     }
 
     void chasing()
@@ -126,40 +140,15 @@ public class NecromancerScript : MonoBehaviour
         else if (hit == true)
         {
             running = false;
-            transform.position = new Vector2(transform.position.x, transform.position.y);
+            transform.position = new Vector2(transform.position.x, transform.position.y); // this staggers the necromancer when hes hit.
         }
-    }
-    void moveAway()
-    {
-        transform.position = Vector2.MoveTowards(this.transform.position, wizzard.position, -speed * Time.deltaTime);
     }
     void moveTowards()
     {
-        
         transform.position = Vector2.MoveTowards(this.transform.position, wizzard.position, speed * Time.deltaTime); // move towards the player
     }
 
-    void isSpotted()
-    {
-        float distanceFromPlayer = Vector2.Distance(wizzard.position, transform.position); // returns the distance from player position to the enemy position
-
-        // only returns true if the necromancer's distance from the wizzard is less than the line of site but greater than the shooting range.
-        if (distanceFromPlayer < lineOfSite && distanceFromPlayer > shootingRange)
-        {
-            chasing();
-            flipTowardsPlayer();
-        }
-        else if(distanceFromPlayer <= shootingRange && nextFireTime < Time.time)
-        {
-            attack();
-            flipTowardsPlayer();
-        }
-        else
-        {
-            running = false;
-        }
-
-    }
+   
 
     void handleAnimations(bool running)
     {
@@ -179,39 +168,23 @@ public class NecromancerScript : MonoBehaviour
         Vector3 newScale = baseScale;
         float playerDirection = wizzard.position.x - transform.position.x; // records where the player is relative to chort.
 
-        if (playerDirection < -0.1)
+        if (playerDirection < -0.1) // if the player is on my left , turn left, otherwise turn right.
         {
-            newScale.x = -baseScale.x;
-            isFacingLeft = true;
+            newScale.x = -baseScale.x;     
         }
         else if (playerDirection > 0.1)
         {
             newScale.x = baseScale.x;
-            isFacingLeft = false;
         }
         transform.localScale = newScale;
-
     }
 
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.tag == "Wizzard" && justHit == false)
-        {
-            collision.gameObject.GetComponent<wizzard>().isHit();
-            justHit = true;
-        }
-        else
-        {
-            StartCoroutine("resetJusthit");
-        }
-    }
+    // shows the line of site and range of site.
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, lineOfSite);
         Gizmos.DrawWireSphere(transform.position, shootingRange);
     }
-
-
 }

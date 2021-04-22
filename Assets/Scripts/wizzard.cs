@@ -176,7 +176,22 @@ public class wizzard : MonoBehaviour
         {
             StartCoroutine("resetMaterial");
         }
+    }
 
+  
+    public void addHealth()
+    {
+        // add health + counter
+
+        if(livesRemaining == 5) // if you have full health just return.
+        {
+            return;
+        }
+        else
+        {
+            livesRemaining++;// add 1 lives
+            lives[livesRemaining-1].enabled = true; // added a -1 to offset the list because the list of 5 hearts really is seen as [0 - 4] in the code.
+        }
     }
     void handleDamageCounter()
     {
@@ -184,11 +199,13 @@ public class wizzard : MonoBehaviour
 
         Destroy(counter, .5f);
     }
+    
 
     void Update()
     {
         handleAiming();
         handleAnimation();
+
 
         if(Input.GetButtonDown("Jump"))
         {

@@ -6,23 +6,20 @@ public class boltController : MonoBehaviour
 {
    
 
-    public float speed;
+    public float speed; // the speed of the bolt.
     public Rigidbody2D boltBody2D;
 
-    GameObject target;
-
-    // Update is called once per frame
-
+    GameObject target; // the wizard
 
     void Start()
     {
         boltBody2D = GetComponent<Rigidbody2D>(); // get a reference to the rigidbody2d of the bolt.
         target = GameObject.FindGameObjectWithTag("Wizzard");
         Vector2 moveDir = (target.transform.position - transform.position).normalized * speed;
-
-        boltBody2D.velocity = new Vector2(moveDir.x, moveDir.y);
-        Destroy(this.gameObject, 2f);
+       
+        boltBody2D.velocity = new Vector2(moveDir.x, moveDir.y); // based on physics it shoots the wizzard.
     }
+
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -31,12 +28,12 @@ public class boltController : MonoBehaviour
         if (collision.tag == "Wizzard")
         {
             collision.gameObject.GetComponent<wizzard>().isHit();
-            Destroy(gameObject);
+            Destroy(this.gameObject);
         }
         // if the bolt hits walls , destroy the bolt object.
         else if (collision.tag == "walls")
         {
-            Destroy(gameObject);
+            Destroy(this.gameObject);
         }
         else
         {
@@ -49,6 +46,6 @@ public class boltController : MonoBehaviour
     IEnumerator fadeBolt()
     {
         yield return new WaitForSeconds(2f);
-        Destroy(gameObject);
+        Destroy(this.gameObject);
     }
 }
