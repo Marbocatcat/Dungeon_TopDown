@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class chort : MonoBehaviour
+public class NecromancerScript : MonoBehaviour
 {
+
     [SerializeField]
     private Transform wizzard;
 
@@ -15,16 +16,26 @@ public class chort : MonoBehaviour
     public float speed;
     public float health;
     public float lineOfSite;
+    public float shootingRange;
+
+    public Transform firePoint;
+    public GameObject bulletToFire;
     public GameObject damageCounter;
-   
 
     private Material matRed;
     private Material matDefault;
+    private Transform staffTransform;
 
     SpriteRenderer spriteRenderer;
     Rigidbody2D rigidBody2D;
     Animator animator;
     Vector3 baseScale;
+
+
+    private void Awake()
+    {
+        staffTransform = transform.Find("red_staff");
+    }
 
     private void Start()
     {
@@ -41,9 +52,10 @@ public class chort : MonoBehaviour
     void Update()
     {
         // if the wizzard is within line of site , he will run towards him.
-        if(isSpotted())
+        if (isSpotted())
         {
             chasing();
+            attack();
             flipTowardsPlayer();
         }
         else
@@ -51,16 +63,20 @@ public class chort : MonoBehaviour
             running = false;
         }
 
-        if(health <= 0)
+        if (health <= 0)
         {
             isDead();
         }
 
         // this is when chort is idle
         handleAnimations(running);
-    
     }
 
+
+    void attack()
+    {
+        Instantiate(bulletToFire, firePoint, staffTransform);
+    }
 
     void handleDamageCounter()
     {
@@ -81,7 +97,7 @@ public class chort : MonoBehaviour
         spriteRenderer.material = matRed;
         handleDamageCounter();
 
-        if(health <=0 )
+        if (health <= 0)
         {
             isDead();
         }
@@ -89,7 +105,7 @@ public class chort : MonoBehaviour
         {
             StartCoroutine("resetMaterial");
         }
- 
+
     }
 
     IEnumerator resetMaterial()
@@ -108,24 +124,29 @@ public class chort : MonoBehaviour
     {
 
         // if im hit stop chasing, otherwise chase the wizzard
-        if(hit == false)
+        if (hit == false)
         {
-            transform.position = Vector2.MoveTowards(this.transform.position, wizzard.position, speed * Time.deltaTime); // move towards the player
+            moveTowards();
             running = true;
         }
-        else if(hit == true)
+        else if (hit == true)
         {
             running = false;
             transform.position = new Vector2(transform.position.x, transform.position.y);
         }
-        
-        
     }
+
+    void moveTowards()
+    {
+        transform.position = Vector2.MoveTowards(this.transform.position, wizzard.position, speed * Time.deltaTime); // move towards the player
+    }
+
     bool isSpotted()
     {
         float distanceFromPlayer = Vector2.Distance(wizzard.position, transform.position); // returns the distance from player position to the enemy position
 
-        if (distanceFromPlayer < lineOfSite)
+        // only returns true if the necromancer's distance from the wizzard is less than the line of site but greater than the shooting range.
+        if (distanceFromPlayer < lineOfSite && distanceFromPlayer > shootingRange)
         {
             return true;
         }
@@ -133,37 +154,39 @@ public class chort : MonoBehaviour
         {
             return false;
         }
-            
+
     }
 
     void handleAnimations(bool running)
     {
-        if(running && !hit)
+        // if you are running and and not hit, play the idle anim, otherwise play the run animation.
+
+        if (running && hit == false)
         {
-            animator.Play("chort_run_anim");
+            animator.Play("necromancer_idle_anim");
         }
         else
         {
-            animator.Play("chort_idle");
+            animator.Play("necromancer_run_anim");
         }
     }
     void flipTowardsPlayer()
     {
         Vector3 newScale = baseScale;
         float playerDirection = wizzard.position.x - transform.position.x; // records where the player is relative to chort.
-        
-        if(playerDirection < -0.1)
+
+        if (playerDirection < -0.1)
         {
             newScale.x = -baseScale.x;
             isFacingLeft = true;
         }
-        else if(playerDirection > 0.1)
+        else if (playerDirection > 0.1)
         {
             newScale.x = baseScale.x;
             isFacingLeft = false;
         }
         transform.localScale = newScale;
-        
+
     }
 
 
@@ -183,6 +206,7 @@ public class chort : MonoBehaviour
     {
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, lineOfSite);
+        Gizmos.DrawWireSphere(transform.position, shootingRange);
     }
 
 
